@@ -1,0 +1,2189 @@
+#include<iostream>
+#include<iomanip>
+#include<ctime>
+#include<string.h>
+#include<fstream>
+#include<stdio.h>
+#include<string>
+#include <conio.h> 
+#include<windows.h>                   //包含windows的头文件使用获取现在系统时间的函数
+#pragma comment(lib, "winmm.lib")           
+using namespace std;
+SYSTEMTIME now_time;          //定义现在时间全局变量
+char user_name[20];
+char user_code[20];
+int Islogged=0;
+class product
+{
+public:
+	char name[30];
+	char code[20];
+	int date_year;
+	int date_month;
+	int date_day;
+	char type[40];
+	double price;
+	int amount;
+	char producer[50];
+	int QuaGP_num;
+	char QuaGP_T[6];
+	int SoldTime_y;
+	int SoldTime_m;
+	int SoldTime_d;
+	int InTime_y;
+	int InTime_m;
+	int InTime_d;
+	int hour;
+	int minute;
+	product *next;
+	void Accept()                        //商品信息的接受函数
+	{
+		
+		cout<<"请输入商品的名称：";
+		cin>>name;
+		cout<<"请输入商品的编号：";
+		cin>>code;
+		cout<<"请输入商品的生产日期(年-月-日)：";
+		scanf("%d-%d-%d",&date_year,&date_month,&date_day);
+		cout<<"请输入商品的价格(人民币/元)：";
+		cin>>price;
+		cout<<"请输入商品的数量(标准单位：件/斤)：";
+		cin>>amount;
+		cout<<"请输入商品的保质期(单位为：天/年/月|无保质期请输入“0无”)：";
+		cin>>QuaGP_num>>QuaGP_T;;
+		cout<<"请输入商品的生产商：";
+		cin>>producer;
+		cout<<"请输入商品的类型(可有多种类型)：";
+		cin>>type;
+	}
+	void Display()                         //商品信息的显示函数
+	{
+		cout<<"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"<<endl;
+		cout<<"商品名称："<<setiosflags(ios::left)<<setw(25)<<name<<'\t';
+		cout<<"商品编号："<<setw(25)<<code<<endl;
+		cout<<"商品价格："<<setiosflags(ios::left)<<setw(25)<<price<<'\t';
+		cout<<"生产日期："<<date_year<<'-'<<date_month<<'-'<<date_day<<endl;
+        if(SoldTime_y>0&&SoldTime_m>0&&SoldTime_d>0)
+		{
+		    cout<<"出 售 量："<<setiosflags(ios::left)<<setw(25)<<amount<<'\t';
+		}
+		else
+		{
+		    cout<<"库 存 量："<<setiosflags(ios::left)<<setw(25)<<amount<<'\t';
+		}
+		cout<<"保 质 期：";
+		if(QuaGP_num<=0)
+			cout<<"无"<<endl;
+		else
+			cout<<QuaGP_num<<QuaGP_T<<endl;
+		cout<<"生 产 商："<<setiosflags(ios::left)<<setw(25)<<producer<<'\t';
+		cout<<"商品类型："<<type<<endl;
+		if(SoldTime_y>0&&SoldTime_m>0&&SoldTime_d>0)
+		{
+			cout<<"出售时间："<<SoldTime_y<<'-'<<SoldTime_m<<'-'<<SoldTime_d<<"  "<<hour<<':';
+		}
+		else 
+			cout<<"入存时间："<<InTime_y<<'-'<<InTime_m<<'-'<<InTime_d<<"  "<<hour<<':';
+		if(minute<10)
+			cout<<'0';
+		cout<<minute<<endl;
+		cout<<"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"<<endl;
+	}
+	void Store_in()                              //商品信息存入文本文件中的函数
+	{
+		ofstream in("d://库存商品.txt",ios::app);
+		in<<"商品名称："<<setiosflags(ios::left)<<setw(25)<<name<<'\t';
+		in<<"商品编号："<<code<<endl;
+		in<<"商品价格："<<setiosflags(ios::left)<<setw(25)<<price<<'\t';
+		in<<"生产日期："<<date_year<<'-'<<date_month<<'-'<<date_day<<endl;
+		in<<"库 存 量："<<setiosflags(ios::left)<<setw(25)<<amount<<'\t';
+		in<<"保 质 期：";
+		if(QuaGP_num<0)
+			in<<"无"<<endl;
+		else
+			in<<QuaGP_num<<QuaGP_T<<endl;
+		in<<"生 产 商："<<setiosflags(ios::left)<<setw(25)<<producer<<'\t';
+		in<<"商品类型："<<type<<endl;
+		in<<"入存时间："<<InTime_y<<'-'<<InTime_m<<'-'<<InTime_d<<"  "<<hour<<':';
+		if(minute<10)
+			in<<'0';
+		in<<minute<<endl;
+		in<<"************************************************************************"<<endl;
+		in.close();
+		
+	}
+	void in()                                //商品信息存入二进制文件中的函数
+	{
+		ofstream fin("库存商品1.txt",ios::binary|ios::app);
+	
+		fin.write((char *)this,sizeof(product));
+		fin.close();
+	}
+	void Sold_out()                          //售出商品信息存入文本文件中的函数
+	{
+		ofstream in("d://售出商品.txt",ios::app);
+		in<<"商品名称："<<setiosflags(ios::left)<<setw(25)<<name<<'\t';
+		in<<"商品编号："<<code<<endl;
+		in<<"商品价格："<<setiosflags(ios::left)<<setw(25)<<price<<'\t';
+		in<<"生产日期："<<date_year<<'-'<<date_month<<'-'<<date_day<<endl;
+		in<<"出 售 量："<<setiosflags(ios::left)<<setw(25)<<amount<<'\t';
+		in<<"保 质 期：";
+		if(QuaGP_num<=0)
+			in<<"无"<<endl;
+		else
+			in<<QuaGP_num<<QuaGP_T<<endl;
+		in<<"生 产 商："<<setiosflags(ios::left)<<setw(25)<<producer<<'\t';
+		in<<"商品类型："<<type<<endl;
+		in<<"出售时间："<<SoldTime_y<<'-'<<SoldTime_m<<'-'<<SoldTime_d<<"  "<<hour<<':';
+		if(minute<10)
+			in<<'0';
+		in<<minute<<endl;
+		in<<"***********************************************************"<<endl;
+		in.close();
+	}
+	void out()              //售出商品信息存入二进制文件中的函数
+	{
+		ofstream fin("售出商品1.txt",ios::binary|ios::app);
+		fin.write((char *)this,sizeof(product));
+		fin.close();
+	}
+};
+void Rewrite_in1();
+void Rewrite_in2();
+void Rewrite_out1();
+void Rewrite_out2();
+product *head=NULL,*head2=NULL;
+
+int Check_All(/*product *head*/)  //查看库存商品的函数
+{
+	char choice;
+	int count=0;
+	product *ptr;
+	ptr=head;
+	if(ptr==NULL)
+	{
+		cout<<"╔═════════════════╗"<<endl;
+		cout<<"║目前没有库存商品！请存入后再查看！║"<<endl;
+		cout<<"╚═════════════════╝"<<endl;
+		cout<<"请输入任意键返回查看菜单：";
+		cin>>choice;
+		system("cls");
+	}
+	else
+	{
+		while(ptr!=NULL)
+		{
+		  count++;
+		  ptr=ptr->next;
+		}
+		system("cls");
+	    ptr=head;
+		cout<<"┌──────────────┐"<<endl;
+	    cout<<"│共找到"<<setw(11)<<count<<"批库存商品 │"<<endl;
+		cout<<"└──────────────┘"<<endl;
+     	count=0;
+	    while(ptr!=NULL)
+		{
+		  count++;
+		  if(count%10==1&&count!=1)                          //每一页显示10批商品
+		  {
+			cout<<"输入Q返回查看菜单/输入其他任意键查看下一页：";
+			cin>>choice;
+			if(choice=='q'||choice=='Q')
+			{
+				system("cls");
+				return 0;
+			}
+			else
+				system("cls");
+		  }
+		  cout<<count<<'.'<<endl;
+		  ptr->Display();
+		  ptr=ptr->next;
+		}
+		cout<<"┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈"<<endl;
+	    cout<<"以上即为所有库存商品！请输入任意键返回查看菜单：";
+	   cin>>choice;
+	   system("cls");
+	}
+	return 0;
+}
+
+int Check_Sold(/*product *head2*/)  //查看已售出商品的函数
+{
+	int count=0;
+	product *ptr;
+	ptr=head2;
+	char choice;
+	if(ptr==NULL)
+	{
+		cout<<"╔═══════════╗"<<endl;
+		cout<<"║暂时没有出售过商品哦！║"<<endl;
+		cout<<"╚═══════════╝"<<endl;
+		cout<<"请输入任意键返回查看菜单：";
+		cin>>choice;
+		system("cls");
+	}
+	else
+	{
+		while(ptr!=NULL)
+		{
+		  count++;
+		  ptr=ptr->next;
+		}
+		system("cls");
+		cout<<"┌────────────────┐"<<endl;
+	    cout<<"│共找到"<<setw(11)<<count<<"批已售出商品！ │"<<endl;
+		cout<<"└────────────────┘"<<endl;
+	    count=0;
+	    ptr=head2;
+	    while(ptr!=NULL)
+		{
+		    count++;
+			if(count%10==1&&count!=1)                          //每一页显示10批商品
+			{
+			    cout<<"输入Q返回查看菜单/输入其他任意键查看下一页：";
+			    cin>>choice;
+			    if(choice=='q'||choice=='Q')
+				   return 0;
+			    else
+				   system("cls");
+			}
+			cout<<count<<'.'<<endl;
+		    ptr->Display();
+		    ptr=ptr->next;
+		}
+        cout<<"┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈"<<endl;
+		cout<<"以上即为所有已售出商品！请输入任意键返回查看菜单：";
+	    cin>>choice;
+	    system("cls");
+	}
+	return 0;
+}
+
+void Check_Type()
+{
+	char keyword[20];
+	int count=0;
+	char choice;
+	product *ptr;
+	do{
+		cout<<"请输入您要搜索的商品类型：";
+		cin>>keyword;
+		ptr=head;
+		while(ptr)
+		{
+			if(strstr(ptr->type,keyword))
+				count++;
+			ptr=ptr->next;
+		}
+		if(count==0)
+		{
+		
+			cout<<"║目前库存商品中没有"<<keyword<<"类型的商品！ ║"<<endl;
+			
+		}
+		
+		else 
+		{
+			system("cls");
+			cout<<"│共找到"<<count<<"批"<<keyword<<"类型的库存商品！│"<<endl;
+			count=0;
+			ptr=head;
+			while(ptr)
+			{
+				if(strstr(ptr->type,keyword))
+				{
+					count++;
+					cout<<count<<'.'<<endl;
+					ptr->Display();
+				}
+			    ptr=ptr->next;
+			}
+		}
+		ptr=head2;
+		count=0;
+		while(ptr)
+		{
+			if(strstr(ptr->type,keyword))
+				count++;
+			ptr=ptr->next;
+		}
+		if(count==0)
+		{
+			
+			cout<<"║目前售出商品中没有"<<keyword<<"类型的商品！║"<<endl;
+			
+		}
+		else 
+		{
+			cout<<"│共找到"<<count<<"批"<<keyword<<"类型的售出商品！│"<<endl;
+			count=0;
+			ptr=head2;
+			while(ptr)
+			{
+				if(strstr(ptr->type,keyword))
+				{
+					count++;
+					cout<<count<<'.'<<endl;
+					ptr->Display();
+				}
+			    ptr=ptr->next;
+			}
+		}
+		cout<<"是否继续按类型查看？是Y/其他任意键返回查看菜单：";
+		cin>>choice;
+		if(choice!='y'&&choice!='Y')
+		{
+			system("cls");
+			break;
+		}
+	}while(1);
+			
+}
+
+int GetDay(product *p)  //将保质期化为天数
+{
+	int day;
+	if(strstr(p->QuaGP_T,"年")||strstr(p->QuaGP_T,"year"))
+		day=365*(p->QuaGP_num);
+	else if(strstr(p->QuaGP_T,"month")||strstr(p->QuaGP_T,"月"))	
+		day=30*(p->QuaGP_num);
+	else if(strstr(p->QuaGP_T,"day")||strstr(p->QuaGP_T,"天")||strstr(p->QuaGP_T,"日"))
+		day=p->QuaGP_num;
+	else if(strstr(p->QuaGP_T,"week")||strstr(p->QuaGP_T,"周"))
+		day=7*(p->QuaGP_num);
+	return day;
+}
+
+int Calcu_Day(product *p) //计算现在时间与商品生产日期的天数差
+{
+	int day1,day2,month;
+	day1=now_time.wDay;
+	day2=p->date_day;
+	for(month=1;month<now_time.wMonth;month++)
+	{
+		if(month==4||month==6||month==9||month==11)
+		
+			day1+=30;
+		else if(month==2)
+		{	
+			if((now_time.wYear%4==0&&now_time.wYear%100!=0)||now_time.wYear%400==0)
+				   day1+=29;
+			else	
+			  day1+=28;		
+		}
+		
+		else
+			day1+=31;
+	}
+	for(month=1;month<p->date_month;month++)
+	{
+		if(month==4||month==6||month==9||month==11)
+			day2+=30;
+		else if(month==2)
+			{
+				if((p->date_year%4==0&&p->date_year%100!=0)||p->date_year%400==0)
+				   day2+=29;
+			    else
+				   day2+=28;	
+			}
+		else
+			day2+=31;
+	}
+	day1+=365*(now_time.wYear-(p->date_year));
+	return day1-day2-1;
+}
+
+int IsOutdate(product *p) //判断是否过期或即将过期
+{
+	int day1,day2;
+	if(p->QuaGP_num<=0)
+		return 0;                              //没有保质期返回0
+	day1=GetDay(p);
+	if(day1<=0)
+		return 0;
+	day2=Calcu_Day(p)+1;
+	if(day1<=day2)
+		return -1;                             //返回-1表示过期
+	else if(day1>=365&&(day1-day2)<=day1/8)  //以下是根据不同的保质期长度返回有效天数
+		return day1-day2;
+	else if(day1>=180&&(day1-day2)<=(day1/6))
+		return day1-day2;
+	else if((day1-day2)<=(day1/4))
+		return day1-day2;
+	else
+		return 0;                               //不过期返回0
+}
+
+int Add(/*product *head*/)        //新增商品的函数
+{
+	system("color e5");
+	char ch;
+	bool over=false;
+	product *s_head,*ptr;
+	s_head=new product;
+	s_head->Accept();
+	GetLocalTime(&now_time);
+	s_head->InTime_y=now_time.wYear;
+	s_head->InTime_m=now_time.wMonth;
+	s_head->InTime_d=now_time.wDay;
+	s_head->hour=now_time.wHour;
+	s_head->minute=now_time.wMinute;
+	s_head->Store_in();
+	s_head->in();
+	s_head->next=NULL;
+	ptr=s_head;
+	while(1)
+	{
+		cout<<"该商品已入存！"<<endl;
+	    cout<<"是否要继续存入商品？继续请输入Y/返回主菜单请输入Q:";
+	    do{
+		    cin>>ch;
+			if(ch=='Q'||ch=='q')
+			{
+				over=true;
+				break;
+			}
+			else if(ch=='y'||ch=='Y')
+			{
+				GetLocalTime(&now_time);
+				ptr=new product;
+				ptr->Accept();
+				ptr->InTime_y=now_time.wYear;
+		        ptr->InTime_m=now_time.wMonth;
+		        ptr->InTime_d=now_time.wDay;
+		        ptr->hour=now_time.wHour;
+		        ptr->minute=now_time.wMinute;
+				ptr->Store_in();
+				ptr->in();
+				ptr->next=s_head;
+				s_head=ptr;
+				break;
+			}
+			else
+				cout<<"\a亲！您输入选项我没有(⊙o⊙)哦！请重新输入：";	
+			
+		}while(1);
+		if(over)
+		{
+			break;
+		}			
+	}
+	if(head==NULL)
+	{
+		head=s_head;
+	}
+	else
+	{
+		ptr=s_head;
+		while(ptr->next!=NULL)
+		{
+			ptr=ptr->next;
+		}
+	   ptr->next=head;
+	   head=s_head;
+	}
+	Rewrite_in1();
+	Rewrite_in2();
+	system("cls");
+	return 0;
+	
+}
+
+void Del_s(int mark)                     //删除商品信息的函数
+{
+	char del_word[30];
+	product *ptr,*ptr_b;
+	char choice;
+	bool back=false;
+	if(mark==1)
+		ptr=head;
+	else
+		ptr=head2;
+	do{
+		cout<<"请输入要删除的商品的名称或编号：";
+		cin>>del_word;
+        do{
+			while(ptr)
+			{
+			    if(strcmp(del_word,ptr->name)==0||strcmp(del_word,ptr->code)==0)
+				{
+				     break;
+				}
+			    ptr_b=ptr;
+			    ptr=ptr->next;
+			}
+		    if(ptr)
+			{
+			    cout<<"找到以下商品："<<endl;
+			    ptr->Display();
+			    cout<<"是否删除"<<ptr->name<<"的信息?是Y/否N/寻找下一批C：";
+			    do{
+				    cin>>choice;
+				    if(choice=='y'||choice=='Y')
+					{
+					    if(ptr==head)        //删除的是库存商品的头结点
+						{
+						   head=head->next;
+						   delete ptr;
+						}
+					    else if(ptr==head2)  //删除的是售出商品的头结点
+						{
+						   head2=head2->next;
+						   delete ptr;
+						}
+					    else                 //删除的不是头结点
+						{
+						   ptr_b->next=ptr->next;
+						   delete ptr;
+						}
+					    cout<<"已成功删除该商品的信息！请按任意键返回删除菜单："<<endl;
+					    cin>>choice;
+					    return;
+					}
+				    else if(choice=='n'||choice=='N')
+					{
+					    cout<<"您已决定不删除该商品信息！请按任意键返回删除菜单：";
+					    cin>>choice;
+					    return;
+					}
+				    else if(choice=='c'||choice=='C')
+					{
+						system("cls");
+						ptr_b=ptr;
+						ptr=ptr->next;
+					    break;
+					}
+				    else
+					{
+					   cout<<"\a亲！您的输入有误哦！请重新输入：";
+					}
+				}while(1);
+			}
+		    else
+			{
+			    cout<<"I'm sorry!没有找到您输入的商品！"<<endl;
+			    cout<<"是否重新输入？是Y/其他任意键返回删除菜单：";
+			    cin>>choice;
+			    if(choice!='y'&&choice!='Y')
+				{
+			     	back=true;
+				    break;
+				}
+				else
+					break;
+			}
+		}while(1);
+		if(back)
+			break;
+	}while(1);
+}
+
+void Del()                          //删除商品信息的的菜单函数
+{
+
+	char choice;
+	bool back=false;
+	do{
+		system("color 1e");
+		cout<<"                       ╔══════╗"<<endl;                 
+		cout<<"                       ║  删除菜单  ║"<<endl;
+		cout<<"                       ╚══════╝"<<endl;
+	    cout<<"╔══════════╦═══════════╦══════╗"<<endl;
+	    cout<<"║A.删除库存商品信息；║B.删除已售出商品信息；║C.返回主菜单║"<<endl;
+		cout<<"╚══════════╩═══════════╩══════╝"<<endl;
+	    cout<<"==============================================================="<<endl;
+	    cout<<"请选择：";
+	    do{
+		      cin>>choice;
+		      if(choice=='A'||choice=='a')
+			  {
+			      Del_s(1);
+				  system("cls");
+			      break;
+			  }
+		      else if(choice=='b'||choice=='B')
+			  {
+		          Del_s(2);
+				  system("cls");
+			      break;
+			  }
+		      else if(choice=='c'||choice=='C')
+			  {
+				  back=true;
+				  break;
+			  }
+			  else
+			  {
+				  cout<<"\a亲！您的输入有误！请重新输入：";
+			  }
+		}while(1);
+		if(back)
+		{
+			Rewrite_in1();
+			Rewrite_in2();
+			Rewrite_out1();
+			Rewrite_out2();
+			system("cls");
+			break;
+		}
+	}while(1);
+}
+
+void Look(/*product *head*/)                 //查看商品过期信息
+{
+	product *ptr,*ptr_b;
+	char choice;
+	int count=0;
+	bool have=false;
+	ptr=head;
+	while(ptr!=NULL)
+	{
+		if(IsOutdate(ptr)==-1)
+			count++;
+		ptr=ptr->next;
+	}
+	if(count==0)
+	{
+		cout<<"╔══════════╗"<<endl;
+		cout<<"║暂时没有过期商品 ！ ║"<<endl;
+		cout<<"╚══════════╝"<<endl;
+	}
+	else
+	{
+		have=true;
+		system("color 4f");
+		cout<<"┌────────────────┐"<<endl;
+	    cout<<"│!!!共找到"<<setw(11)<<count<<"批过期商品! │"<<endl;
+		cout<<"└────────────────┘"<<endl;
+     	count=0;
+	    ptr=head;
+		while(ptr!=NULL)
+		{
+			if(IsOutdate(ptr)==-1)
+			{
+				count++;
+				cout<<count<<'.'<<endl;
+				ptr->Display();
+			}
+			ptr=ptr->next;
+		}
+	}
+	count=0;
+	ptr=head;
+	while(ptr!=NULL)
+	{
+		if(IsOutdate(ptr)>0)
+			count++;
+		ptr=ptr->next;
+	}
+	if(count==0)
+	{
+		cout<<"╔══════════════╗"<<endl;
+		cout<<"║近期内没有未过期商品将过期！║"<<endl;
+		cout<<"╚══════════════╝"<<endl;
+	}
+	else
+	{
+		cout<<"┌─────────────────┐"<<endl;
+	    cout<<"│共找到"<<setw(11)<<count<<"批即将过期商品！ │"<<endl;
+		cout<<"└─────────────────┘"<<endl;
+     	count=0;
+	    ptr=head;
+		while(ptr!=NULL)
+		{
+			if(IsOutdate(ptr)>0)
+			{
+				count++;
+				cout<<count<<'.'<<endl;
+				ptr->Display();
+				cout<<"!!!"<<ptr->name<<"离最后有效期还有"<<IsOutdate(ptr)<<"天!"<<endl;
+			}
+			ptr=ptr->next;
+		}
+	}
+	if(have)
+	do{
+		cout<<"删除所有过期商品请输入D/返回主菜单请输入Q：";
+	    cin>>choice;
+		if(choice=='Q'||choice=='q')
+			break;
+		else if(choice=='d'||choice=='D')
+		{
+			cout<<"\a确定要删除所有过期商品？？确定输入Y/输入其他字符返回主菜单：";
+			cin>>choice;
+			if(choice=='y'||choice=='Y')
+			{
+				ptr=head;
+				while(ptr!=NULL)
+				{
+					if(IsOutdate(ptr)==-1)
+					{
+						if(ptr==head)  //删除头结点
+						{
+							head=head->next;
+							delete ptr;
+							ptr=head;
+						}
+						else
+						{
+							ptr_b->next=ptr->next;
+							delete ptr;
+							ptr=ptr_b;
+						}
+					}
+					ptr_b=ptr;
+					ptr=ptr->next;
+				}
+				cout<<"已成功删除所有过期商品！请按任意键返回主菜单："<<endl;
+				cin>>choice;
+				Rewrite_in1();
+				Rewrite_in2();
+				break;
+			}
+			else
+			{
+				system("cls");
+				break;
+			}
+		}
+		else
+		{
+			cout<<"\a亲！输入有误！请重新输入！"<<endl;
+		}
+	}while(1);
+	else
+	{
+		cout<<" 请输入任意键返回主菜单：";
+	    cin>>choice;
+	}
+		system("cls");
+}
+
+int Correct_s(char ch)             //修改商品信息的函数
+{
+	product *ptr=NULL;
+	char choice;
+	char keyword[30];
+	bool out=false;
+	if(ch=='a'||ch=='A')
+		ptr=head;
+	else if(ch=='b'||ch=='B')
+		ptr=head2;
+	do{
+		cout<<"请输入要修改的商品的名称或编号：";
+	    cin>>keyword;
+		do{
+			while(ptr)
+			{
+			   if(strcmp(keyword,ptr->name)==0||strcmp(keyword,ptr->code)==0)
+				   break;
+			   ptr=ptr->next;
+			}
+		    if(!ptr)
+			{
+			   cout<<"对不起！没有该商品！"<<endl;
+			   cout<<"换词查找Y/其他键则返回修改菜单：";
+			   cin>>choice;
+			   if(choice!='y'&&choice!='Y')
+			   {
+				   system("cls");
+				   return 0;
+			   } 
+			   else
+				  break;
+			}
+		    else
+			{
+			    cout<<"找到以下商品！"<<endl;
+                ptr->Display();
+			    cout<<"    是否修改？是Y/查找下一批C/否则输入其他任意键:";
+			    cin>>choice;
+			    if(choice=='y'||choice=='Y')
+				{
+			       cout<<"            ┌──────┐"<<endl;
+			       cout<<"            │  修改项目  │"<<endl;
+			       cout<<"┌─────┼──────┼──────┐"<<endl;
+			       cout<<"│  1.全部；│   2.名称； │   3.编号； │"<<endl;
+			       cout<<"├─────┼──────┼──────┤"<<endl;
+			       cout<<"│  4.价格；│5.生产日期；│  6.保质期；│"<<endl;
+			       cout<<"├─────┼──────┼──────┤"<<endl;
+                   cout<<"│ 7.数量； │ 8.生产商； │  9.类型    │"<<endl;
+			       cout<<"└─────┴──────┴──────┘"<<endl;
+			       do{
+				       cout<<"请输入要修改的项目(输入0则不修改)：";
+			           cin>>choice;
+				       switch(choice)
+					   {
+				         case'1':cout<<"请输入商品的全部新信息："<<endl;
+					             ptr->Accept();break;
+				         case'2':cout<<"请输入商品的新名称：";
+				               	 cin>>ptr->name;break;
+				         case'3':cout<<"请输入商品的新编号：";
+					             cin>>ptr->code;break;
+				         case'4':cout<<"请输入商品的新价格：";
+					             cin>>ptr->price;break;
+				         case'5':cout<<"请输入商品的新生产日期(****-**-**)：";
+					             scanf("%d-%d-%d",&ptr->date_year,&ptr->date_month,&ptr->date_day);break;
+				         case'6':cout<<"请输入商品的新保质期(单位为年/月/日)：";
+				                 cin>>ptr->QuaGP_num>>ptr->QuaGP_T;break;
+				         case'7':cout<<"请输入商品的新数量：";
+					             cin>>ptr->amount;break;
+				         case'8':cout<<"请输入商品的新生产商：";
+					             cin>>ptr->producer;break;
+				         case'9':cout<<"请输入商品的新类型：";
+					             cin>>ptr->type;break;
+				         case'0':return 1;
+				         default:cout<<"您已选择不修改该商品信息！请按任意键返回修改菜单：";
+					             cin>>choice;return 1;
+
+					   }
+					   Rewrite_in1();
+				       Rewrite_in2();
+				       Rewrite_out1();
+				       Rewrite_out2();
+				       cout<<"╔═════╗"<<endl;
+				       cout<<"║修改成功！║"<<endl;
+				       cout<<"╠═════╝"<<endl;
+				       cout<<"║继续修改？是输入Y/跟换商品修改输入C/输入其他则返回修改菜单：";
+				       cin>>choice;
+				       if(choice=='c'||choice=='C')
+					   {
+						    out=true;
+					        system("cls");
+					        break;
+					   }
+				       else if(choice!='y'&&choice!='Y')
+					   {
+					        system("cls");
+					        return 1;
+					   }
+				   }while(1);
+				}
+				else if(choice=='c'||choice=='C')
+				{
+					ptr=ptr->next;
+				}
+				else
+				{
+					cout<<"您已决定不修改该商品的信息！请输入任意键返回修改菜单：";
+					cin>>choice;
+					system("cls");
+					return 0;
+				}
+			}
+		    if(out)
+		      break;
+		}while(1);			
+	}while(1);
+}
+				
+int Correct(/*product *head*/)            //修改商品信息的菜单函数
+{
+	char choice;
+	do{
+		system("color 9f");
+		cout<<"                      ╔═══════╗"<<endl;
+		cout<<"                      ║   修改菜单   ║"<<endl;
+		cout<<"╔══════════╬═══════╩═══╦══════╗"<<endl;
+		cout<<"║A.修改库存商品信息；║B.修改已售出商品信息；║C.返回主菜单║"<<endl;
+		cout<<"╚══════════╩═══════════╩══════╝"<<endl;
+		cout<<"请选择：";
+		do{
+			cin>>choice;
+		    if(choice=='c'||choice=='C')
+			{
+			    system("cls");
+			    return 0;
+			}
+		    else if(choice!='a'&&choice!='A'&&choice!='b'&&choice!='B')
+			{
+				cout<<"\a输入有误！请重新输入：";
+				continue;
+			}
+			else
+			{
+				Correct_s(choice);
+				break;
+			}
+		}while(1);
+	}while(1);
+}
+	
+int Check(/*product *head,product *head2*/)                  //查看所有可能商品的函数
+{
+	int Search(/*product **/);
+	char choice;
+	do{
+		 system("color e1");
+		 cout<<"                      ╔═══════╗"<<endl;
+		 cout<<"                      ║   查看菜单   ║"<<endl;
+		 cout<<"                      ╚═══════╝"<<endl;
+		 cout<<"┌────────────┬───────────┬───────┐"<<endl;
+	     cout<<"│A.查看所有库存商品信息；│B.查看已出售商品信息；│C.按类型查看；│"<<endl;
+		 cout<<"├────────────┼───────────┼───────┘"<<endl;
+		 cout<<"│D.搜索商品；            │E.返回主菜单          │"<<endl;
+		 cout<<"└────────────┴───────────┘"<<endl;
+		 cout<<"┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈"<<endl;
+		 cout<<"亲！请选择您的查看方式：";
+	C_input:
+		 cin>>choice;
+		 switch(choice)
+		 {
+		   case'a':
+		   case'A':system("cls");Check_All(/*head*/);break;
+		   case'b':
+		   case'B':system("cls");Check_Sold(/*head2*/);break;
+		   case'c':
+		   case'C':system("cls");Check_Type();continue;break;
+		   case'd':
+		   case'D':Search(/*head*/);break;
+		   case'E':
+		   case'e':system("cls");return 0;
+		   default:cout<<"\a亲！输入有误哦！请重新输入：";goto C_input;
+		 }		     		   
+	}while(1);
+}
+
+int Read_in(/*product *head,product *head2*/)       //从文件中读出库存商品数据的函数
+{
+	product *ptr=NULL,*ptr_b=NULL;
+	fstream f;
+	f.open("库存商品1.txt",ios::in|ios::binary);
+	if(!f)
+		return 0;
+	while(!f.eof())
+	{
+		if(head==NULL)
+		{
+			head=new product;
+			f.read((char *)head,sizeof(product));
+			if(head->amount<=0)
+			{
+				delete head;
+				head=NULL;
+			}
+			else
+			{
+
+			    head->next=NULL;
+			    ptr_b=ptr=head;
+			}
+			
+		}
+		else
+		{
+			ptr=new product;
+			f.read((char *)ptr,sizeof(product));
+			if(ptr->amount<=0)
+			{
+				delete ptr;
+				ptr=NULL;
+			}
+			else
+			{
+			    ptr->next=NULL;
+			    ptr_b->next=ptr;
+			    ptr_b=ptr;
+			}
+		}
+	}
+	f.close();
+	return 0;
+}
+
+int Read_sold()                                 //从文件中读出已售出商品数据的函数             
+{
+	product *ptr,*ptr_b;
+	fstream f;
+	f.open("售出商品1.txt",ios::in|ios::binary);
+	if(!f)
+		return 0;
+	while(!f.eof())
+	{
+		
+		if(head2==NULL)
+		{
+			head2=new product;
+			f.read((char *)head2,sizeof(product));
+			if(head2->amount<=0)
+			{
+				delete head2;
+				head2=NULL;
+			}
+			else
+			{
+			    head2->next=NULL;
+			    ptr_b=ptr=head2;
+			}
+		}
+		else
+		{
+			ptr=new product;
+			f.read((char *)ptr,sizeof(product));
+			if(ptr->amount<=0)
+			{
+				delete ptr;
+				ptr=NULL;
+			}
+			else
+			{
+			    ptr->next=NULL;
+			    ptr_b->next=ptr;
+			    ptr_b=ptr;
+			}
+		}	
+	}
+    f.close();
+	return 0;
+}
+
+int Search(/*product *head*/)                  //综合搜索函数
+{
+	char keyword[30];
+	product *ptr;
+	int count=0;
+	char choice;
+	do{
+		system("color 5f");
+		cout<<"请输入您要搜索的关键词：";
+	    cin>>keyword;
+	    ptr=head;
+	    while(ptr!=NULL)
+		{
+		if(strstr(ptr->name,keyword)||strstr(ptr->code,keyword))
+			count++;
+		ptr=ptr->next;
+		}
+    	
+	    cout<<"共找到"<<count<<"批可能的库存商品！"<<endl;
+		if(count!=0)
+		{
+	      ptr=head;
+	      count=0;
+	      while(ptr!=NULL)
+		  {
+		    if(strstr(ptr->name,keyword)||strstr(ptr->code,keyword))
+			{
+		         count++;
+				 cout<<count<<'.'<<endl;
+			     ptr->Display();
+			}
+	    	ptr=ptr->next;
+		  }
+		}
+		count=0;
+		ptr=head2;
+	    while(ptr!=NULL)
+		{
+		   if(strstr(ptr->name,keyword)||strstr(ptr->code,keyword))
+			  count++;
+		   ptr=ptr->next;
+		}
+	    cout<<"共找到"<<count<<"批可能的已售出商品！"<<endl;
+		if(count!=0)
+		{
+	       ptr=head2;
+	       count=0;
+	       while(ptr!=NULL)
+		   {
+		    if(strstr(ptr->name,keyword)||strstr(ptr->code,keyword))
+			{
+		         count++;
+				 cout<<count<<'.'<<endl;
+			     ptr->Display();
+			}
+	    	ptr=ptr->next;
+		   }
+		}
+		count=0;
+		ptr=head;
+	    while(ptr!=NULL)
+		{
+		if(strstr(ptr->type,keyword))
+			count++;
+		ptr=ptr->next;
+		}
+	    cout<<"共找到"<<count<<"批"<<keyword<<"类型库存商品！"<<endl;
+		if(count!=0)
+		{
+	       ptr=head;
+	       count=0;
+	       while(ptr!=NULL)
+		   {
+		    if(strstr(ptr->type,keyword))
+			{
+		         count++;
+				 cout<<count<<'.'<<endl;
+			     ptr->Display();
+			}
+	    	ptr=ptr->next;
+		   }
+		}
+		count=0;
+		ptr=head2;
+	    while(ptr!=NULL)
+		{
+		   if(strstr(ptr->type,keyword))
+			  count++;
+		   ptr=ptr->next;
+		}
+	    cout<<"共找到"<<count<<"批"<<keyword<<"类型的已售出商品！"<<endl;
+		if(count!=0)
+		{
+	       ptr=head2;
+	       count=0;
+		
+	       while(ptr!=NULL)
+		   {
+		    if(strstr(ptr->type,keyword))
+			{
+		         count++;
+				 cout<<count<<'.'<<endl;
+			     ptr->Display();
+			}
+	    	ptr=ptr->next;
+		   }
+		}
+		cout<<"            →→→是否继续？继续Y/返回主菜单Q：←←←";
+	    do{
+		       cin>>choice;
+		       if(choice=='Q'||choice=='q')
+			   {
+				   system("cls");
+				   return 0;
+			   }
+		       else if(choice=='Y'||choice=='y')
+			   {
+				   system("cls");
+				   break;
+			   }
+			   else
+			   {
+			       cout<<"\a№!亲！您的输入有误哦！请重新输入：";
+			   }
+		}while(1);	  
+	}while(1);
+}
+
+int Sold(/*product *head,product *head2*/)         //出售商品的函数
+{
+	char s_word[30];
+	product *ptr,*ptr_b,*q;
+	int num,count=0;
+	char choice;
+	do{
+		cout<<"请输入要出售的商品的名称或编号：";
+		cin>>s_word;
+		ptr_b=q=head;
+		while(q)
+		{
+			if(strcmp(s_word,q->name)==0||strcmp(s_word,q->code)==0)
+			{
+				count=q->amount;
+				ptr=q;
+			}
+			q=q->next;
+		}
+		if(count==0)
+		{
+			cout<<"╔════════════╗"<<endl;
+			cout<<"║对不起！该商品暂时无货！║"<<endl;
+			cout<<"╚════════════╝"<<endl;
+			cout<<"重新输入商品输入Y/输入其他任意键返回主菜单：";
+			cin>>choice;
+			if(choice!='y'&&choice!='Y')
+			{
+				system("cls");
+				return 0;
+			}
+			else
+				continue;
+		}
+		else
+		{
+			cout<<"共有"<<count<<"件该商品！"<<endl;
+			ptr->Display();
+			if(IsOutdate(ptr)==-1)
+			{
+		      	cout<<"╔══════════╗"<<endl;
+				cout<<"║提醒！该商品已过期！║\a"<<endl;
+				cout<<"╚══════════╝"<<endl;
+			}
+			while((ptr_b->next)!=ptr&&ptr_b->next!=NULL)
+			{
+				ptr_b=ptr_b->next;
+			}	
+			cout<<"是否要出售该商品？是Y/否则输入其他键：";
+			cin>>choice;
+			if(choice=='y'||choice=='Y')
+			{
+				cout<<"请输入要出售的数量：";
+				do{
+					cin>>num;
+					if(num>count)
+					{
+						cout<<"抱歉！该商品不足"<<num<<"件！最多只能出售"<<count<<"件！"<<endl;
+						cout<<"请重新输入出售数量（输入0则退回主菜单）：";
+						continue;
+					}
+					else if(num==count)
+					{
+						cout<<"是否要出售全部该商品？是Y/重新输入出售数量N/其他任意键返回主菜单：";
+						cin>>choice;
+						if(choice=='y'||choice=='Y')
+						{
+							if(ptr==head)
+								head=head->next;
+							else
+								ptr_b->next=ptr->next;
+							ptr->next=head2;
+							head2=ptr;
+							GetLocalTime(&now_time);
+						ptr->SoldTime_y=now_time.wYear;
+						ptr->SoldTime_m=now_time.wMonth;
+						ptr->SoldTime_d=now_time.wDay;
+						ptr->hour=now_time.wHour;
+						ptr->minute=now_time.wMinute;
+						ptr->out();
+						}
+						else if(choice!='n'&&choice!='N')
+						{
+							system("cls");
+							return 0;
+						}
+					}
+					else if(num<=0)
+					{
+	
+						system("cls");
+						return 0;
+					}
+					else
+					{
+						ptr->amount-=num;
+						ptr_b=new product;
+						GetLocalTime(&now_time);
+						strcpy(ptr_b->name,ptr->name);
+						strcpy(ptr_b->code,ptr->code);
+						strcpy(ptr_b->type,ptr->type);
+						strcpy(ptr_b->producer,ptr->producer);
+						strcpy(ptr_b->QuaGP_T,ptr->QuaGP_T);
+						ptr_b->date_year=ptr->date_year;
+						ptr_b->date_month=ptr->date_month;
+						ptr_b->date_day=ptr->date_day;
+						ptr_b->price=ptr->price;
+						ptr_b->QuaGP_num=ptr->QuaGP_num;
+						ptr_b->SoldTime_y=now_time.wYear;
+						ptr_b->SoldTime_m=now_time.wMonth;
+						ptr_b->SoldTime_d=now_time.wDay;
+						ptr_b->SoldTime_d=now_time.wDay;
+						ptr_b->hour=now_time.wHour;
+						ptr_b->minute=now_time.wMinute;
+						ptr_b->amount=num;
+						ptr_b->next=head2;
+						head2=ptr_b;
+						ptr_b->out();
+					}
+					cout<<"━━━━━━━━━━━━━━━━━━━━━━━"<<endl;
+					cout<<"   本次交易成功售出"<<num<<"件该商品"<<endl;
+					cout<<"   本次交易收入为"<<num*(ptr->price)<<"元"<<endl;;
+					cout<<"━━━━━━━━━━━━━━━━━━━━━━━"<<endl;
+					break;
+				}while(1);
+			}
+			else 
+			{
+				cout<<"╔═══════════╗"<<endl;
+				cout<<"║您已决定不出售该商品！║"<<endl;
+				cout<<"╚═══════════╝"<<endl;
+			}
+		}
+
+		cout<<"是否继续出售其他商品？继续Y/输入其他键则返回主菜单：";
+		cin>>choice;
+		if(choice!='y'&&choice!='Y')
+		{
+			Rewrite_in1();
+			Rewrite_in2();
+			Rewrite_out1();
+			Rewrite_out2();
+			system("cls");
+			return 0;
+		}
+		
+	}while(1);
+}
+
+int Sale_look(char ch)                  //查看具体某段时间内销售情况的函数
+{
+	int period_num,period,time;
+	int count=0;
+	char period_T[6];
+	double sale=0;
+	product *ptr,*q;
+	GetLocalTime(&now_time);
+	if(ch=='a'||ch=='A')
+	{
+		ptr=head2;
+		while(ptr)
+		{
+			if(ptr->SoldTime_y==now_time.wYear&&ptr->SoldTime_m==now_time.wMonth&&ptr->SoldTime_d==now_time.wDay)
+			{
+				count+=ptr->amount;
+				sale+=ptr->amount*ptr->price;
+			}
+			else
+				break;
+			ptr=ptr->next;
+		}
+	
+		cout<<"    ◣◣◣◣◣今天到目前为此共售出("<<count<<")件商品！◢◢◢◢◢"<<endl;
+		cout<<"    ◣◣◣◣◣◣◣◣总销售额为("<<sale<<")元！◢◢◢◢◢◢◢◢◢"<<endl;
+	}
+	else if(ch=='B'||ch=='b')
+	{
+		ptr=head2;
+		while(ptr)
+		{
+			if(ptr->SoldTime_y==now_time.wYear&&ptr->SoldTime_m==now_time.wMonth)
+			{
+				count+=ptr->amount;
+				sale+=ptr->amount*ptr->price;
+			}
+			else
+				break;
+			ptr=ptr->next;
+		}
+		cout<<"     ◤◤◤◤◤◤本月到目前为此共售出("<<count<<")件商品！◥◥◥◥◥◥◥"<<endl;
+		cout<<"     ◤◤◤◤◤◤◤◤◤◤总销售额为("<<sale<<")元！◥◥◥◥◥◥◥◥◥◥"<<endl;
+	}
+	else if(ch=='c'||ch=='C')
+	{
+		ptr=head2;
+		while(ptr)
+		{
+			if(ptr->SoldTime_y==now_time.wYear)
+			{
+			    if(now_time.wMonth==1||now_time.wMonth==4||now_time.wMonth==7||now_time.wMonth==10)
+				{
+				     if(ptr->SoldTime_m==now_time.wMonth)
+					 {
+					     count+=ptr->amount;
+					     sale+=ptr->amount*ptr->price;
+					 }
+				     else
+					    break;
+				}
+			    else if(now_time.wMonth==2||now_time.wMonth==5||now_time.wMonth==8||now_time.wMonth==11)
+				{
+				    if(now_time.wMonth-ptr->SoldTime_m<=1)
+					{
+						count+=ptr->amount;
+						sale+=ptr->amount*ptr->price;
+					}
+					else break;
+				}
+				else
+				{
+					if(now_time.wMonth-ptr->SoldTime_m<=2)
+					{
+						count+=ptr->amount;
+						sale+=ptr->amount*ptr->price;
+					}
+					else
+						break;
+				}
+			}
+			else
+				break;
+			        
+			ptr=ptr->next;
+		}
+		cout<<"     ▓▓▓▓▓▓▓本季度到目前为此共售出("<<count<<")件商品！▓▓▓▓▓▓▓"<<endl;
+		cout<<"     ▓▓▓▓▓▓▓▓▓▓▓总销售额为("<<sale<<")元！▓▓▓▓▓▓▓▓▓▓▓"<<endl;
+	}
+	else if(ch=='d'||ch=='D')
+	{
+		cout<<"请输入您想查询的时间段(*年/*月/*日；例如：5个月)：";
+		cin>>period_num>>period_T;
+		q=new product;
+		q->QuaGP_num=period_num;
+		strcpy(q->QuaGP_T,period_T);
+		period=GetDay(q);
+		delete q;
+		ptr=head2;
+		while(ptr)
+		{
+			q=new product;
+			q->date_year=ptr->SoldTime_y;
+			q->date_month=ptr->SoldTime_m;
+			q->date_day=ptr->SoldTime_d;
+			time=Calcu_Day(q)+1;
+			delete q;
+			if(time<period)                    //可能需要修改
+			{
+				count+=ptr->amount;
+				sale+=ptr->amount*ptr->price;
+			}
+			else 
+				break;
+			ptr=ptr->next;
+		}
+		cout<<"    ≡≡≡≡≡≡≡最近"<<period_num<<period_T<<"共售出("<<count<<")件商品！≡≡≡≡≡≡≡"<<endl;
+		cout<<"    ≡≡≡≡≡≡≡≡≡≡≡≡总销售额为("<<sale<<")元！≡≡≡≡≡≡≡≡≡≡≡≡≡≡"<<endl;
+	}
+	else
+		return 1;
+	return 0;
+}
+					                   
+int Sale_situ()               //查看销售情况菜单函数
+{
+	int wrong;
+	char choice;
+	do{
+		system("color b0");
+		cout<<"                    ┌───────────┐"<<endl;
+		cout<<"                    │    销售情况查看菜单  │"<<endl;
+		cout<<"                    └───────────┘"<<endl;
+		cout<<"╔═══════════╦══════════╦═══════════╗"<<endl;
+		cout<<"║A.查看今日销售情况；  ║B.查看本月销售情况；║C.查看本季度销售情况；║"<<endl;
+		cout<<"╠═══════════╬══════════╬═══════════╝"<<endl;
+		cout<<"║D.自己输入时间段查看；║E.返回主菜单        ║ "<<endl;
+		cout<<"╚═══════════╩══════════╝"<<endl;
+	    cout<<"┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈"<<endl;
+		cout<<"请选择：";
+		do{
+			cin>>choice;
+		    if(choice=='e'||choice=='E')
+			{
+			   system("cls");
+			   return 0;
+			}
+		    else 
+			{
+			   wrong=Sale_look(choice);
+			   if(wrong)
+			      cout<<"亲！\a输入有误哦！请重新输入：";
+			   else
+				 break;
+			}
+		}while(1);
+		cout<<"是否继续查看销售情况？是Y/其他任意键返回主菜单：";
+		cin>>choice;
+		if(choice!='y'&&choice!='Y')
+		{
+			system("cls");
+			break;
+		}
+		system("cls");
+	}while(1);
+	return 0;	
+}
+
+void Rewrite_in1()                          //以下四个函数均为商品数据重写入文件的函数
+{
+	fstream in("d://库存商品.txt",ios::out|ios::trunc);
+	product *ptr;
+	ptr=head;
+	while(ptr)
+	{
+		in<<"商品名称："<<setiosflags(ios::left)<<setw(20)<<ptr->name<<'\t';
+		in<<"商品编号："<<setw(-10)<<ptr->code<<endl;
+		in<<"商品价格："<<setiosflags(ios::left)<<setw(20)<<ptr->price<<'\t';
+		in<<"生产日期："<<ptr->date_year<<'-'<<ptr->date_month<<'-'<<ptr->date_day<<endl;
+		in<<"库 存 量："<<setiosflags(ios::left)<<setw(20)<<ptr->amount<<'\t';
+		in<<"保 质 期：";
+		if(ptr->QuaGP_num<0)
+			in<<"无"<<endl;
+		else
+			in<<ptr->QuaGP_num<<ptr->QuaGP_T<<endl;
+		in<<"生 产 商："<<setiosflags(ios::left)<<setw(20)<<ptr->producer<<'\t';
+		in<<"商品类型："<<ptr->type<<endl;
+		in<<"存入时间："<<ptr->InTime_y<<'-'<<ptr->InTime_m<<'-'<<ptr->InTime_d<<' '<<ptr->hour<<':';
+		if(ptr->minute<10)
+			in<<'0';
+		in<<ptr->minute<<endl;
+		in<<"************************************************************************"<<endl;
+		ptr=ptr->next;
+	}
+	in.close();
+}
+
+void Rewrite_in2()
+{
+	fstream fin;
+	product *ptr;
+	fin.open("库存商品1.txt",ios::out|ios::trunc|ios::binary);	
+	ptr=head;
+	while(ptr)
+	{
+		fin.write((char *)ptr,sizeof(product));
+		ptr=ptr->next;
+	}
+	fin.close();	
+}
+
+void Rewrite_out1()
+{
+	fstream in("d://售出商品.txt",ios::out|ios::trunc);
+	product *ptr;
+	ptr=head2;
+	while(ptr)
+	{
+		in<<"商品名称："<<setiosflags(ios::left)<<setw(20)<<ptr->name<<'\t';
+		in<<"商品编号："<<ptr->code<<endl;
+		in<<"商品价格："<<setiosflags(ios::left)<<setw(20)<<ptr->price<<'\t';
+		in<<"生产日期："<<ptr->date_year<<'-'<<ptr->date_month<<'-'<<ptr->date_day<<endl;
+		in<<"出 售 量："<<setiosflags(ios::left)<<setw(20)<<ptr->amount<<'\t';
+		in<<"保 质 期：";
+		if(ptr->QuaGP_num<=0)
+			in<<"无"<<endl;
+		else
+			in<<ptr->QuaGP_num<<ptr->QuaGP_T<<endl;
+		in<<"生 产 商："<<setiosflags(ios::left)<<setw(20)<<ptr->producer<<'\t';
+		in<<"商品类型："<<ptr->type<<endl;
+		in<<"出售日期："<<ptr->SoldTime_y<<'-'<<ptr->SoldTime_m<<'-'<<ptr->SoldTime_d<<' '<<ptr->hour<<':';
+		if(ptr->minute<10)
+			in<<'0';
+		in<<ptr->minute<<endl;
+		in<<"***********************************************************"<<endl;
+		ptr=ptr->next;
+	}
+    in.close();	
+}
+
+void Rewrite_out2()
+{
+    fstream fin;
+	product *ptr;
+	fin.open("售出商品1.txt",ios::out|ios::trunc|ios::binary);
+	ptr=head2;
+	while(ptr)
+	{
+		fin.write((char *)ptr,sizeof(product));
+		ptr=ptr->next;
+	}
+	fin.close();	
+}
+int InputCode(char p[])
+{
+	int i=0;
+    while(p[i]=getch())
+    {
+        if(p[i]==13) break;
+        if(p[i]!='\b')
+        {
+            cout<<"●";
+            i++;
+        }
+        else
+        {
+            cout<<"\b \b\b";
+            i--;
+        }
+    }
+    p[i]='\0';
+   return  0; 
+}
+
+int GetUser()
+{
+	fstream f("user.txt",ios::in|ios::binary);
+	f.read(user_name,20);
+	f.read(user_code,20);
+	f.close();
+	return 0;
+}
+int SaveUser()
+{
+	fstream f("user.txt",ios::out|ios::binary);
+	f.write(user_name,20);
+	f.write(user_code,20);
+	f.close();
+	return 0;
+}
+int Changeuser()
+{
+	cout<<"请输入新用户名：";
+	cin>>user_name;
+	cout<<"请输入新密码：";
+	InputCode(user_code);
+	cout<<endl<<"修改用户成功！";
+	SaveUser();
+	return 0;
+}
+int Changecode()
+{
+    char word1[20],word2[20];
+	do{
+		cout<<"请输入密码：";
+	    InputCode(word1);
+		cout<<endl;
+		cout<<"请再一次输入新密码：";
+		InputCode(word2);
+		cout<<endl;
+		if(strcmp(word1,word2)!=0)
+		{
+			cout<<"两次密码\a输入不同！请重新输入！"<<endl;
+			continue;
+		}
+		else
+		{
+			strcpy(user_code,word1);
+			SaveUser();
+			cout<<"修改密码成功！";
+			break;
+		}
+	}while(1);
+	return 0;
+}
+
+
+int Loging()
+{
+	char log_name[20];
+	char log_code[20];
+	char choice;
+	do{
+		system("color a5");
+		cout<<"                        ┌────────┐"<<endl;
+	    cout<<"                        │    登录界面    │"<<endl;
+	    cout<<"                        └────────┘"<<endl;
+	    cout<<"   ╔═══════════════════════════════╗"<<endl;
+	    cout<<"   ║     A.登录；  B.修改用户；  C.修改密码；  D.返回主菜单       ║"<<endl;
+	    cout<<"   ╚═══════════════════════════════╝"<<endl;
+	do{
+		cout<<"请选择：";
+		cin>>choice;
+		if(choice=='d'||choice=='D')
+		{
+			system("cls");
+			return 0;
+		}
+		else if(choice=='c'||choice=='C')
+		{
+			if(Islogged)
+			{
+			  Changecode();
+			  cout<<"请输入任意键返回主菜单：";
+			  cin>>choice;
+			  system("cls");
+			  return 0;
+			}
+			else
+			{
+				cout<<"您尚未\a登录！请先登录后再修改密码！"<<endl;
+				continue;
+			}
+		}
+		
+		else if(choice=='b'||choice=='B')
+		{
+			if(Islogged)
+			{
+			  Changeuser();
+			  cout<<"请输入任意键返回主菜单：";
+			  cin>>choice;
+			  system("cls");
+			  return 0;
+			}
+			else
+			{
+				cout<<"您尚未\a登录！请先登录后再修改用户！"<<endl;
+				continue;
+			}
+		}
+
+
+	do{
+		cout<<"请输入您的用户名：";
+	    cin>>log_name;
+	    if(strcmp(log_name,user_name)!=0)
+		{
+		   cout<<"\a该用户不存在！请重新输入！"<<endl;
+		   continue;
+		}
+		else
+		{
+			cout<<"请输入用户密码：";
+			do{
+				InputCode(log_code);
+				cout<<endl;
+			    if(strcmp(log_code,user_code)!=0)
+				{
+					cout<<"\a用户密码输入错误！请重新输入：";
+					continue;
+				}
+				else
+				{
+					Islogged=1;
+					cout<<"登录成功！您可以对商品信息进行处理！"<<endl;
+					cout<<"请输入任意键返回主菜单：";
+					cin>>choice;
+					system("cls");
+					return 1;
+				}
+			}while(1);
+		}
+	}while(1);
+	}while(1);
+	}while(1);
+	return 0;
+}
+					
+int main()                                    //主菜单，即主函数
+{
+	GetLocalTime(&now_time);
+	Read_in();
+	Read_sold();
+	system("color 0e");
+	cout<<"\n\n\n\n\n\n\n\n\n\n\n\n";
+	cout<<"                           正在进入……请稍后\n\n\n"<<endl;
+	for(int i=0;i<40;i++)
+	{
+		MessageBeep(10);
+		Sleep(20);
+		cout<<"》";	
+	}
+	system("cls");
+	system("color e9");
+	char choice;
+	cout<<"         ╭────────────────────────────╮  "<<endl;
+	cout<<"         │                XX商场商品进销存管理系统                │"<<endl;
+	cout<<"         ╰────────────────────────────╯  "<<endl;
+	cout<<"亲(*^__^*) ！欢迎使用本系统！"<<endl;;
+	do{
+		system("color e9");
+		cout<<"                            ┏━━━━━━━━┓"<<endl; 
+		cout<<"                            ┃  【 主菜单 】  ┃"<<endl;
+        cout<<"                            ┗━━━━━━━━┛"<<endl;
+		cout<<"┏━━━━━━━━┳━━━━━━━━┳━━━━━━━━┳━━━━━━━━┓"<<endl;
+	    cout<<"┃A.查看商品信息；┃B.存入新商品；  ┃ C.出售商品；   ┃D.修改商品信息；┃"<<endl;
+		cout<<"┣━━━━━━━━╋━━━━━━━━╋━━━━━━━━╋━━━━━━━━┫"<<endl;
+		cout<<"┃E.删除商品信息；┃F.查看过期信息；┃G.查看销售情况；┃S.搜索          ┃"<<endl;
+		cout<<"┣━━━━━━━━╋━━━━━━━━╋━━━━━━━━┻━━━━━━━━┛"<<endl;
+		cout<<"┃ L.进入登录界面 ┃Q.退出          ┃"<<endl; 
+		cout<<"┗━━━━━━━━┻━━━━━━━━┛"<<endl;
+		cout<<"  "<<endl;
+		cout<<"请选择您需要的服务：";
+    start:
+		cin>>choice;
+	    switch(choice)
+		{
+	     case'a':
+	     case'A':system("cls");Check(/*head,head2*/);break;
+	     case'b':
+	     case'B':Add(/*head*/);break;
+   	     case'c':
+	     case'C':system("cls");Sold(/*head,head2*/);break;
+	     case'd':
+		 case'D':GetUser();if(Islogged){system("cls");Correct(/*head*/);}else {cout<<"\a您尚未登录！请先登录后再选择修改菜单！"<<endl;cout<<"请选择：";goto start;}break;
+	     case'e':
+		 case'E':GetUser();if(Islogged){system("cls");Del();}else {cout<<"\a您尚未登录！请先登录后再选择删除菜单！"<<endl;;cout<<"请选择：";goto start;}break;
+	     case'f':
+	     case'F':system("cls");Look(/*head*/);break;
+		 case'g':
+		 case'G':system("cls");Sale_situ();break;
+		 case's':
+		 case'S':system("cls");Search(/*head*/);break;
+		 case'l':
+		 case'L':GetUser();system("cls");Loging();break;
+		 case'q':
+		 case'Q':Rewrite_in1();
+			     Rewrite_in2();
+			     Rewrite_out1();
+			     Rewrite_out2();
+			     cout<<"                     ☆☆ ☆☆  ☆☆ ☆☆"<<endl;
+                 cout<<"                   ★★      ★       ★★"<<endl;
+                 cout<<"                  ☆☆　　　Ｇｏｏｄ　　☆☆"<<endl;
+                 cout<<"                   ★★    　Ｂｙｅ！  ★★"<<endl;
+                 cout<<"                    ☆☆             ☆☆"<<endl;
+                 cout<<"                      ★★         ★★"<<endl;
+                 cout<<"                        ☆☆     ☆☆"<<endl;
+                 cout<<"                          ★★  ★★"<<endl;
+                 cout<<"                             ☆☆"<<endl<<endl;              
+                 cout<<"          ◆◆◆◆◆◆◆感谢您使用本系统◆◆◆◆◆◆◆"<<endl;
+	             cout<<"          ◆◆◆◆◆◆◆期待您的再次光临◆◆◆◆◆◆◆"<<endl<<endl;
+				 cout<<"             系统将在3秒后关闭！3";Sleep(1000);cout<<"\b \b\a"<<'2';Sleep(1000);cout<<"\b \b\a"<<'1';Sleep(1000);cout<<"\b \b\a";system("color 70");return 0;
+	     default:system("color 4F");cout<<"\a亲！输入有误哦！请重新输入：";system("color e9");goto start;
+		}	 
+	}while(1);
+	return 0;
+}
+
+		
+
+
+			
+
+	
+
+
+  《高级语言课程设计》
+
+
+
+
+
+
+
+
+题    目：	
+班    级：		   软工2班	 
+学生学号：			201130690225	 
+学生姓名：			许XX
+指导老师：			肖X	  
+提交时间：			2011年4月15日
+成    绩：			
+			
+			
+
+
+
+
+
+
+
+华南农业大学 信息学院
+
+
+
+
+
+
+
+
+
+
+
+评分项目	分数
+功能是否满足葽求（50分）	
+界面是否美观（10分）	
+所学知识在设计中的运用是否得当（10分）	
+对效率要求较高的部分是否有更深的思考与设计（10分）	
+答辩陈述是否清楚（10分）	
+答辩陈述是否完整（10分）	
+小组总成绩：	
+
+（1）问题描述
+1.1问题分析：
+本次课程设计我选的题目是商品进销存管理系统。要完成这个系统，程序应建立至少2个链表，一条表示库存商品信息，另一条表示已售出的商品信息。当然相应的要有2个文件，各自存放链表的信息。这样通过文件读写操作和一些链表的基本操作，即可实现系统的基本功能，如新增、修改、删除商品信息等。
+
+1.2功能分析：
+
+1.2.1基本功能如商品信息的新增和删除分别通过链表结点的插入和删除即可实现，修改功能通过查找和结点数据的重新输入即可实现。
+
+1.2.2商品管理，免不了有很多时间信息，如生产日期、 保质期、出售时间等。所以有必要增加商品过期、将过期提醒功能。这个功能可以使商家即及时对过期和将过期的商品进行处理，如删除过期商品，对不久将过期的商品搞降价促销等。
+
+1.2.3另外查看某一段时间内的销售情况的功能也是很有用的。快捷、方便地了解某个月、某个季度、甚至任意某段时间内的销售情况，可以让商家制定更有效的未来销售计划。
+
+1.2.4当然，商品管理一定会有基本的查看和搜索功能，其中查看可分为查看库存商品、查看已售出商品和按类型查看商品；搜索则是对某一关键词进行综合搜索。
+
+1.3开发平台：本次课程设计我使用的开发工具是Visual C++6.0，使用的程序语言为C++。本来这个系统用C语言写出来是完全没有问题的，而且据说C语言对文件的读写比C++高效，但因为本人不久前在学了C语言的基础上自学了C++语言的基础知识，所以想用本次课程设计来巩固自己新学的知识。
+
+（2）系统设计
+1.1系统总体结构设计：我做的系统主要以树形菜单的结构来对商品进行管理，即一个菜单下面可能有几个子菜单。子菜单又可以随时返回上一级菜单，操作简捷、方便。
+
+1.2数据结构设计：
+
+1.2.1主要数据结构，即商品信息主要以线性表（链表）的形式储存在内存中，。在程序运行时，先将原先已经写入文件中的信息读取出来存放在链表的结点中，一批商品一个结点。此程序将两条链表的头结点（head和head2）变量有很多缺点，最重要的是使用全局变量会使程序难以维护和修正。但在我写的程序中，是将保存库存商品和已售出商品信息的链表的头结点，这样使用全局变量并无伤大雅，不仅使得在接下来写各个函数变得简单，思路清晰，而且能减去各个函数间参数相互传递的时间，提高程序执行效率。不过在以后的编程中，我还是会尽量避免使用全局变量。程序将新增商品和新售出商品的结点放在各自链表的表头，但是出售商品时当有不同批次入存的同种商品时，会先出售入存时间早的商品（因为一般情况下入存时间越早，生产日期也越早，最后有效期也越近）。
+
+1.2.2关于文件读写的问题，由于二进制文件可以对整个结构（本程序为class）进行读写操作，所以用二进制文件来存储商品信息。但又因为二进制文件无法直接查看（一打开都是乱码），所以程序又将信息写入文本文件中（程序将其放在D盘），这样用户可以直接打开文件获取信息。因此，程序一共使用了5个文件，库存商品和已售出商品各有一个二进制文件和一个文本文件，用户名和密码也存放在一个二进制文件中。
+
+1.3系统各个函数与函数之间的调用关系：其主要关系图大概如下：
+
+
+
+其中修改和删除菜单需要登录才能进入（防止有其他人进入系统擅自修改信息牟取利益）。
+
+1.4界面设计：系统界面主要以分级菜单形式呈现，比较简洁易看。每切换一次菜单，程序都用system（“cls”）进行清屏，另外查看商品时，商品过多（多于10个）时程序将其分页，即每10个一页，这样查看起来比较清晰。现有界面截图如下：
+
+
+ 
+主菜单界面
+ 
+查找显示库存商品的界面
+
+
+
+
+
+
+（3）系统实现：
+1.1新增商品功能：在新增商品时，定义一个头结点product *s_head，将新增的第一批商品放到s_head中，如果有新增第二个，则放到ptr（同样为product*类型）中，再将ptr->next=s_head;s_head=ptr;依次类推，就是将新增的商品放到表头（这样链表本身已经按入存时间排好序，这样在查看所有时可以最先看到新入存的商品），其流程图大致如下：
+
+	
+
+其代码大概如下：
+char ch;
+bool over=false;
+product *s_head,*ptr;
+s_head=new product;
+s_head->Accept();
+GetLocalTime(&now_time);
+s_head->InTime_y=now_time.wYear;
+s_head->InTime_m=now_time.wMonth;
+s_head->InTime_d=now_time.wDay;
+s_head->hour=now_time.wHour;
+s_head->minute=now_time.wMinute;
+s_head->Store_in();
+s_head->in();
+s_head->next=NULL;
+ptr_b=ptr=s_head;
+while(1)
+{
+cout<<"该商品已入存！"<<endl;
+cout<<"是否要继续存入商品？继续请输入Y/返回主菜单请输入Q:";
+do{
+cin>>ch;
+if(ch=='Q'||ch=='q')
+{
+over=true;
+break;
+}
+else if(ch=='y'||ch=='Y')
+{
+GetLocalTime(&now_time);
+ptr=new product;
+ptr->Accept();
+ptr->InTime_y=now_time.wYear;
+ptr->InTime_m=now_time.wMonth;
+ptr->InTime_d=now_time.wDay;
+ptr->hour=now_time.wHour;
+ptr->minute=now_time.wMinute;
+ptr->Store_in();
+ptr->in();
+ptr->next=s_head;
+s_head=ptr;
+break;
+}
+else
+cout<<"\a亲！您输入选项我没有(⊙o⊙)哦！请重新输入：";
+
+}while(1);
+if(over)
+{
+break;
+}
+}
+if(head==NULL)
+{
+head=s_head;
+}
+else
+{
+ptr=s_head;
+while(ptr->next!=NULL)
+{
+ptr=ptr->next;
+}
+ptr->next=head;
+head=s_head;
+}
+1.2出售商品功能：出售商品时先找到要出售的商品（如有多批同种不同入存时间的商品，则找出入存时间找的商品；然后比较库存数量与欲出售量的大小，对各种比较情况进行不同的链表操作，其流程图大概如下：
+
+	Y
+	N
+
+	N	Y
+出售商品函数很长，在这里不显示。
+1.3修改功能：修改商品信息只要找到要修改的商品结点，对其结点变量重新输入值即可。
+其过程比较简单，在这里不展示其流程图。其代码如下：
+product *ptr=NULL;
+	char choice;
+	char keyword[30];
+	if(ch=='a'||ch=='A')
+		ptr=head;
+	else if(ch=='b'||ch=='B')
+		ptr=head2;
+	else
+		return 0;
+	do{
+		cout<<"请输入要修改的商品的名称或编号：";
+	    cin>>keyword;
+		while(ptr)
+		{
+			if(!strcmp(keyword,ptr->name)||!strcmp(keyword,ptr->code))
+				break;
+			ptr=ptr->next;
+		}
+		if(!ptr)
+		{
+			cout<<"对不起！没有该商品！"<<endl;
+			cout<<"换词查找Y/其他键则返回修改菜单：";
+			cin>>choice;
+			if(choice!='y'&&choice!='Y')
+			{
+				system("cls");
+				return 0;
+			} 
+			else
+				continue;
+		}
+		else
+		{
+			cout<<"找到以下商品！"<<endl;
+            ptr->Display();
+			cout<<"            ┌──────┐"<<endl;
+			cout<<"            │  修改项目  │"<<endl;
+			cout<<"┌─────┼──────┼──────┐"<<endl;
+			cout<<"│  1.全部；│   2.名称； │   3.编号； │"<<endl;
+			cout<<"├─────┼──────┼──────┤"<<endl;
+			cout<<"│  4.价格；│5.生产日期；│  6.保质期；│"<<endl;
+			cout<<"├─────┼──────┼──────┤"<<endl;
+            cout<<"│ 7.数量； │ 8.生产商； │  9.类型    │"<<endl;
+			cout<<"└─────┴──────┴──────┘"<<endl;
+			do{
+				cout<<"请输入要修改的项目(输入0则不修改)：";
+			    cin>>choice;
+				switch(choice)
+				{
+				case'1':cout<<"请输入商品的全部新信息："<<endl;
+					ptr->Accept();break;
+				case'2':cout<<"请输入商品的新名称：";
+					cin>>ptr->name;break;
+				case'3':cout<<"请输入商品的新编号：";
+					cin>>ptr->code;break;
+				case'4':cout<<"请输入商品的新价格：";
+					cin>>ptr->price;break;
+				case'5':cout<<"请输入商品的新生产日期(****-**-**)：";
+					scanf("%d-%d-%d",&ptr->date_year,&ptr->date_month,&ptr->date_day);break;
+				case'6':cout<<"请输入商品的新保质期(单位为年/月/日)：";
+					cin>>ptr->QuaGP_num>>ptr->QuaGP_T;break;
+				case'7':cout<<"请输入商品的新数量：";
+					cin>>ptr->amount;break;
+				case'8':cout<<"请输入商品的新生产商：";
+					cin>>ptr->producer;break;
+				case'9':cout<<"请输入商品的新类型：";
+					cin>>ptr->type;break;
+				case'0':return 1;
+				default:cout<<"您已选择不修改该商品信息！请按任意键返回修改菜单：";
+					cin>>choice;return 1;
+
+				}
+				cout<<"╔═════╗"<<endl;
+				cout<<"║修改成功！║"<<endl;
+				cout<<"╠═════╩"<<endl;
+				cout<<"║继续修改？是输入Y/跟换商品修改输入C/输入其他则返回修改菜单：";
+				cin>>choice;
+				if(choice=='c'||choice=='C')
+				{
+					system("cls");
+					break;
+				}
+				else if(choice!='y'&&choice!='Y')
+				{
+					system("cls");
+					return 1;
+				}
+			}while(1);
+		}
+	}while(1);
+1.4删除功能：删除商品信息只要找到要删除商品的结点（ptr）及其前一个结点（ptr_b）即可。其流程图为：
+	Y
+
+
+
+
+
+
+
+其代码如下：
+char del_word[30];
+	product *ptr,*ptr_b;
+	char choice;
+	bool back=false;
+	if(mark==1)
+		ptr=head;
+	else
+		ptr=head2;
+	do{
+		cout<<"请输入要删除的商品的名称或编号：";
+		cin>>del_word;
+		while(ptr)
+		{
+			if(!strcmp(del_word,ptr->name)||!strcmp(del_word,ptr->code))
+			{
+				break;
+			}
+			ptr_b=ptr;
+			ptr=ptr->next;
+		}
+		if(ptr)
+		{
+			cout<<"找到以下商品："<<endl;
+			ptr->Display();
+			cout<<"是否删除"<<ptr->name<<"的信息?是Y/否N：";
+			do{
+				cin>>choice;
+				if(choice=='y'||choice=='Y')
+				{
+					if(ptr==head)        //删除的是库存商品的头结点
+					{
+						head=head->next;
+						delete ptr;
+					}
+					else if(ptr==head2)  //删除的是售出商品的头结点
+					{
+						head2=head2->next;
+						delete ptr;
+					}
+					else                 //删除的不是头结点
+					{
+						ptr_b->next=ptr->next;
+						delete ptr;
+					}
+					cout<<"已成功删除该商品的信息！请按任意键返回删除菜单："<<endl;
+					cin>>choice;
+					back=true;
+					break;
+				}
+				else if(choice=='n'||choice=='N')
+				{
+					cout<<"您已决定不删除该商品信息！请按任意键返回删除菜单：";
+					cin>>choice;
+					break;
+				}
+				else
+				{
+					cout<<"\a亲！您的输入有误哦！请重新输入：";
+				}
+			}while(1);
+		}
+		else
+		{
+			cout<<"I'm sorry!没有找到您输入的商品！"<<endl;
+			cout<<"是否重新输入？是Y/其他任意键返回删除菜单：";
+			cin>>choice;
+			if(choice!='y'&&choice!='Y')
+			{
+				break;
+			}
+		}
+		if(back)
+			break;
+	}while(1);
+	system("cls");
+1.5其余功能：剩下的功能如过期和将过期商品查看功能、某段时间销售情况查看功能等比较复杂，且是个人添加功能，在这里不一一赘述。
+
+4）系统测试：
+系统测试方面，我在运行程序时新增入一些商品，出售部分商品，修改和删除商品信息后分别在运行窗口查看和直接打开D盘文件查看并无发现任何问题；过期信息查看功能，我刚开始故意输入一些过期和将过期商品，选择此功能后发现了一些错误，如未过期被当成过期，未出现将过期商品、或是将过期商品离最后有效期的天数计算不正确等问题，但后来经过一些修改，终于得到正确结果（即与预期结果一样）。
+（5）运行界面：以下是运行界面的一些截图：
+  
+ 
+ 
+ 
+ 
+
+（6）总结：
+本次高级语言程序课程设计是一次富有挑战性的实践演练，是对我上一个学期学习成果的一次练兵。通过这次课程设计，我掌握了C++的文件操作的基础知识，对上一学期学的链表的操作有了更进一步的认识，更重要的是我彻底认识到了编程的实用性，加深了我对编程的兴趣。虽然大约1700行的代码（当然如果有效优化的话不用1700行）写起来有点辛苦，但看到程序成功运行时，我觉得一切辛苦都是值得的。
+
+
+
+
+
+
+
